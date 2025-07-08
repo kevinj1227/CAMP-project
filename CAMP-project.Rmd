@@ -14,4 +14,23 @@ This is an R Markdown document. Markdown is a simple formatting syntax for
 
 ```{r}
 install.packages("tidyverse")
+library(tidyverse)
 ```
+```{r}
+#tryi
+```
+
+trying out data set use
+```{r}
+```
+
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+```{r}
+svb <- social_vulnerability%>%
+  filter()
+```
+

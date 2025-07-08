@@ -1,0 +1,28 @@
+---
+title: "CAMP-R Notebook"
+output: html_notebook
+---
+
+```{r}
+# for data manipulation and visualization
+library(tidyverse)
+
+# to help set the working directory and make this script reproducible across different machines
+library(here)
+
+# for the strobe diagram
+library(DiagrammeR)
+library(DiagrammeRsvg) 
+library(glue)
+library(rsvg)
+```
+## check the working directory- this should be the filepath to your project folder
+
+```{r}
+here::here()
+```
+Load in the data set
+```{r}
+#ped_health <- read_csv(here("data", "ped_health.csv"))
+```
+
