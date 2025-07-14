@@ -1,0 +1,91 @@
+---
+title: "R Notebook"
+output: html_document
+---
+### CHD and ADHD comparison with SES factors
+```{r}
+# for data manipulation and visualization
+library(tidyverse)
+
+# to help set the working directory and make this script reproducible across different machines
+library(here)
+
+# for the strobe diagram
+library(DiagrammeR)
+library(DiagrammeRsvg) 
+library(glue)
+library(rsvg)
+
+library(tableone) 
+library(broom)
+```
+
+```{r}
+# set the working directory to the location of this script
+here::here()
+```
+
+# load the data and check distribution of variables starting with poverty level
+```{r}
+ped_health <- read_csv(here("ped_health.csv"))
+summary(ped_health$povlev4_2223)
+table(ped_health$povlev4_2223)
+```
+
+
+
+#What do these numbers mean? Let's visualize.
+```{r}
+#1 -"0-99% of poverty level"
+#2 -"100-199% of poverty level"
+#3 "200-399% of poverty level"
+#4 "400% or more of poverty level
+
+ped_health<- ped_health %>%
+  mutate(povlev4_2223 = factor(povlev4_2223, 
+                               levels = c(1, 2, 3, 4), 
+                               labels = c("0-99% of poverty level", 
+                                          "100-199% of poverty level", 
+                                          "200-399% of poverty level", 
+                                          "400% or more of poverty level")))
+
+ggplot(ped_health, aes(x = povlev4_2223, fill=adhd_binary))+
+  labs(x="Poverty Level") +
+  geom_bar()
+```
+```{r}
+unique(ped_health$povlev4_2223)
+```
+#Table of people
+```{r}
+table(ped_health$povlev4_2223, ped_health$adhd_binary, useNA = "always")
+
+```
+#Let's see graph in proportions
+```{r}
+ggplot(ped_health, aes(x = povlev4_2223, fill=adhd_binary))+
+  labs(x="Poverty Level") +
+  geom_bar(position="fill")+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_minimal()
+
+prop_table <- ped_health %>%
+  group_by(povlev4_2223, adhd_binary) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(povlev4_2223) %>%
+  mutate(prop = n / sum(n))
+
+print(prop_table)
+```
+### Wow.. while there are more children with ADHD in higher income groups when looking at raw counts, the proportion of children with ADHD is actually higher in lower income groups.
+
+#Now let's create a contigency table for a chisquare test.
+```{r}
+chisq.test(prop_table$n, 
+           p = prop_table$prop, 
+           rescale.p = TRUE, 
+           simulate.p.value = TRUE, 
+           B = 10000)
+
+```
+

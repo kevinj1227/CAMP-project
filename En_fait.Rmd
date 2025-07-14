@@ -15,6 +15,9 @@ library(DiagrammeR)
 library(DiagrammeRsvg) 
 library(glue)
 library(rsvg)
+
+library(tableone) 
+
 ```
 ## check the working directory- this should be the filepath to your project folder
 
@@ -23,6 +26,95 @@ here::here()
 ```
 Load in the data set
 ```{r}
-#ped_health <- read_csv(here("data", "ped_health.csv"))
+ped_health <- read_csv(here("ped_health.csv"))
+view(ped_health)
+```
+Check distribution Selecteed child age in years
+```{r}
+summary(ped_health$SC_AGE_YEARS)
+table(ped_health$SC_AGE_YEARS)
+```
+
+
+
+Check distribution of those with adhd 
+```{r}
+summary(ped_health$K2Q31B)
+table(ped_health$K2Q31B)
+
+### 1- yes, 2- no, 95- don't know/refused, 99- missing
+```
+Recode this variable to be a factor....
+```{r}
+ped_health <- ped_health %>%
+  mutate(diagnosed_adhd = case_when(
+    K2Q31A == 1 ~ "Yes",
+    K2Q31A == 2 ~ "No",
+    K2Q31A == 95 ~ "Don't know/refused",
+    K2Q31A == 99 ~ "Missing"
+  )) %>%
+  mutate(diagnosed_adhd = factor(adhd, levels = c("Yes", "No", "Don't know/refused", "Missing")))
+```
+Visualize this distribution
+```{r}
+ggplot(ped_health, aes(x = diagnosed_adhd)) +
+  geom_bar() +
+  labs(title = "Distribution of ADHD Diagnosis", x = "ADHD Diagnosis", y = "Count") +
+  theme_minimal() +
+  scale_x_discrete(drop = FALSE) # to ensure all factor levels are shown
+```
+Now let's look at the distribution of those born with cardiac illness.
+```{r}
+summary(ped_health$HeartBorn_2223)
+table(ped_health$HeartBorn_2223)
+```
+Make sense of these data, turn it into factors.
+```{r}
+ped_health <- ped_health %>%
+  mutate(heart_born = case_when(
+    HeartBorn_2223 == 1 ~ "No",
+    HeartBorn_2223 == 2 ~ "Ever told, NOT Born",
+    HeartBorn_2223 == 3 ~ "Ever told, Born",
+    HeartBorn_2223 == 99 ~ "Missing"
+  )) %>%
+  mutate(heart_born = factor(heart_born, levels = c("No", "Ever told, NOT Born", "Ever told, Born", "Missing")))
+```
+Visualize this distribution
+```{r}
+ggplot(ped_health, aes(x = heart_born)) +
+  geom_bar() +
+  labs(title = "Distribution of Cardiac Illness at Birth", x = "Cardiac Illness Status", y = "Count") +
+  theme_minimal() +
+  scale_x_discrete(drop = FALSE) # to ensure all factor levels are shown)
+```
+Making binary distribution of those born with cardiac illness
+```{r}
+ped_health <- ped_health %>%
+  mutate(
+    CHD_binary = case_when(
+      HeartBorn_2223 == 3 ~ "Yes",
+      HeartBorn_2223 %in% c(1, 2) ~ "No",
+      HeartBorn_2223 == 99 ~ NA_character_
+    ),
+    CHD_binary = factor(CHD_binary, levels = c("No", "Yes"))
+  )
+table(ped_health$CHD_binary)
+```
+Making binary distribution of those with ADHD
+
+```{r}
+ped_health <- ped_health %>%
+  mutate(
+    adhd_binary = case_when(
+      K2Q31A == 1 ~ "Yes",
+      K2Q31A == 2 ~ "No",
+      K2Q31A %in% c(95, 99) ~ NA_character_
+    ),
+    adhd_binary = factor(adhd_binary, levels = c("No", "Yes"))
+  )
+```
+
+```{r}
+table(ped_health$K2Q31A)
 ```
 
